@@ -2,6 +2,7 @@ const express=require('express')
 const app=express()
 const user=require('./models/user')
 const mongoose=require('mongoose')
+const bcrypt=require('bcrypt')
 
 app.set('view engine','ejs')
 app.set('views','views')
@@ -19,12 +20,23 @@ mongoose.connect('mongodb://localhost:27017/authdemo', {
         console.log("Error, MONGO CONNECTION!!!!")
         console.log(err)
 })
+app.get('/',(req,res)=>{
+    res.send('This is the home page')
+})
 
 app.get('/register',(req,res)=>{
     res.render('register')
 })
 app.post('/register',async(req,res)=>{
-    res.send(req.body)
+    const {Uname,Pass}=req.body
+    const hash=await bcrypt.hash(Pass,12)
+    const newuser=new user({
+        username:Uname,
+        password:hash
+    })
+    await newuser.save()
+    res.redirect('/')
+
 })
 
 app.get('/secret',(req,res)=>{
