@@ -25,18 +25,32 @@ app.get('/',(req,res)=>{
 })
 
 app.get('/register',(req,res)=>{
-    res.render('register')
+    res.render('register')//registering the user with password
 })
 app.post('/register',async(req,res)=>{
-    const {Uname,Pass}=req.body
-    const hash=await bcrypt.hash(Pass,12)
+    const {username,password}=req.body
+    const hash=await bcrypt.hash(password,12)
     const newuser=new user({
-        username:Uname,
+        username:username,
         password:hash
     })
     await newuser.save()
     res.redirect('/')
 
+})
+app.get('/login',(req,res)=>{
+    res.render('login')
+})
+app.post('/login',async(req,res)=>{//here we are not identifying id by req.params becouse no need 
+    const {username,password}=req.body
+    const loggeduser=await user.findOne({username})
+    const result=await bcrypt.compare(password,loggeduser.password)
+    if(result){
+        console.log('password matched')
+    }else{
+        console.log('try again')
+    }
+    res.redirect('/')
 })
 
 app.get('/secret',(req,res)=>{
