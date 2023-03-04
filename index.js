@@ -44,13 +44,18 @@ app.get('/login',(req,res)=>{
 app.post('/login',async(req,res)=>{//here we are not identifying id by req.params becouse no need 
     const {username,password}=req.body
     const loggeduser=await user.findOne({username})
-    const result=await bcrypt.compare(password,loggeduser.password)
-    if(result){
-        console.log('password matched')
-    }else{
-        console.log('try again')
+    if(loggeduser){
+        const result=await bcrypt.compare(password,loggeduser.password)
+        if(result){
+            res.send('password matched')
+        }else{
+            res.send('try again')
+        }
     }
-    res.redirect('/')
+    else{
+        res.send('user not found')
+    }
+    
 })
 
 app.get('/secret',(req,res)=>{
