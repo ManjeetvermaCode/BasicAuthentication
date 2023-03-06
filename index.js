@@ -3,11 +3,13 @@ const app=express()
 const user=require('./models/user')
 const mongoose=require('mongoose')
 const bcrypt=require('bcrypt')
+const session=require('express-session')
 
 app.set('view engine','ejs')
 app.set('views','views')
 
 app.use(express.urlencoded({extended:true}))//this is use to parse(in programming parse meaning to analyze or interprete data according to specific syntax or structure) 'req.body'.
+app.use(session({secret:'probablyagoodpassword'}))
 
 mongoose.connect('mongodb://localhost:27017/authdemo', { 
     useNewUrlParser: true,
@@ -35,21 +37,23 @@ app.post('/register',async(req,res)=>{
         password:hash
     })
     await newuser.save()
-    res.redirect('/')
+    req.session.id=newuser._id;
+    res.redirect('/secret')
 
 })
 app.get('/login',(req,res)=>{
     res.render('login')
 })
-app.post('/login',async(req,res)=>{//here we are not identifying id by req.params becouse no need 
+app.post('/login',async(req,res)=>{
     const {username,password}=req.body
-    const loggeduser=await user.findOne({username})
+    const loggeduser=await user.findOne({username})//here we are not identifying by id, that's why username should be unique.
     if(loggeduser){
         const result=await bcrypt.compare(password,loggeduser.password)
         if(result){
-            res.send('password matched')
+            req.session.id=loggeduser._id;
+            res.redirect('/secret')
         }else{
-            res.send('try again')
+            res.send('/login')
         }
     }
     else{
@@ -59,6 +63,9 @@ app.post('/login',async(req,res)=>{//here we are not identifying id by req.param
 })
 
 app.get('/secret',(req,res)=>{
+    if(!req.session.id){
+        res.redirect('/register')
+    }
     res.send('this is a secret, if you are watching this means you are authenticated.')
 })
 
