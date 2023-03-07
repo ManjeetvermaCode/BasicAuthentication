@@ -53,19 +53,15 @@ app.get('/login',(req,res)=>{
 })
 app.post('/login',async(req,res)=>{
     const {username,password}=req.body
-    const loggeduser=await user.findOne({username})//here we are not identifying by id, that's why username should be unique.
-    if(loggeduser){
-        const result=await bcrypt.compare(password,loggeduser.password)
+    const result=await user.findandvalidate(username,password)
         if(result){
-            req.session.user_id=loggeduser._id;
-            res.redirect('/secret')
+            req.session.user_id=result._id;
+            return res.redirect('/secret')
         }else{
             res.render('login')
         }
-    }
-    else{
-        res.send('user not found')
-    }
+    
+    
     
 })
 
